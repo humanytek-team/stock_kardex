@@ -33,6 +33,13 @@ class StockKardex(models.TransientModel):
         StockMove = self.env['stock.move']
         StockKardexDetail = self.env['stock.kardex.detail']
         qty = 0
+        _logger.info('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        _logger.info(self.product_id.id)
+        _logger.info(self.date_start)
+        _logger.info(self.date_end)
+        _logger.info(self.location_id.id)
+        _logger.info(self.location_id.id)
+        _logger.info('CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC')
         stock_moves = StockMove.search([
                         ('product_id.id', '=', self.product_id.id),
                         ('date', '>=', self.date_start),
