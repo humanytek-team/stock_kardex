@@ -84,7 +84,7 @@ class StockKardex(models.TransientModel):
                                 raise_if_not_found=False)
         return location and location.id or False
 
-    product_id = fields.Many2one('product.template', 'Product', required=True)
+    product_id = fields.Many2one('product.product', 'Product', required=True)
     location_id = fields.Many2one('stock.location', 'Location', required=True,
                                 default=_get_default_location_id)
     date_start = fields.Datetime('Start Date',
