@@ -17,6 +17,8 @@
                         <group>
                             <field name="product_id" />
                             <field name="location_id" />
+                            <field name="stock_start" />
+                            <field name="stock_end" />
                         </group>
                         <group>
                             <field name="date_start" />
@@ -26,6 +28,8 @@
                     <field name="stock_kardex_detail_ids" mode="tree">
                         <tree string="Detail" >
                             <field name="stock_move_id" />
+                            <field name="location_id" />
+                            <field name="location_dest_id" />
                             <field name="move_qty_product" />
                             <field name="qty_product" />
                             <field name="move_date" />

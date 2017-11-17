@@ -42,6 +42,21 @@ class StockKardex(models.TransientModel):
                         ('location_id', '=', self.location_id.id),
                         ('location_dest_id', '=', self.location_id.id)],
                             order='date')
+
+        stock_moves_ini = StockMove.search([
+                        ('product_id.id', '=', self.product_id.id),
+                        ('date', '<', self.date_start),
+                        ('state', '=', 'done'),
+                        '|',
+                        ('location_id', '=', self.location_id.id),
+                        ('location_dest_id', '=', self.location_id.id)])
+        for move in stock_moves_ini:
+            if self.location_id.id == move.location_id.id:
+                qty -= move.product_uom_qty
+            else:
+                qty += move.product_uom_qty
+
+        self.write({'stock_start': qty})
         StockKardexDetail.search([]).unlink()
         for stock_move in stock_moves:
             if self.location_id.id == stock_move.location_id.id:
@@ -53,6 +68,7 @@ class StockKardex(models.TransientModel):
                     'product_id': self.product_id.id,
                     'stock_kardex_id': self.id,
                     'qty_product': qty})
+        self.write({'stock_end': qty})
 
         return {
                 'type': 'ir.actions.act_window',
@@ -77,6 +93,9 @@ class StockKardex(models.TransientModel):
                                     required=True)
     date_end = fields.Datetime('End Date',
                                     required=True)
+    stock_start = fields.Float('Starting stock', readonly=True)
+    stock_end = fields.Float('Ending stock', readonly=True,)
+
     stock_kardex_detail_ids = fields.One2many('stock.kardex.detail',
                             'stock_kardex_id',
                             'Detail')
@@ -92,3 +111,11 @@ class StockKardexDetail(models.TransientModel):
                             string='Quantity', readonly=True, store=False)
     move_date = fields.Datetime(related='stock_move_id.date',
                             string='Date', readonly=True, store=False)
+    location_id = fields.Many2one(related='stock_move_id.location_id',
+                            string='Source Location',
+                            readonly=True, store=False)
+    location_dest_id = fields.Many2one(
+                            related='stock_move_id.location_dest_id',
+                            string='Destination Location',
+                            readonly=True, store=False)
+
