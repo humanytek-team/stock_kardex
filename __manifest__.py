@@ -30,7 +30,7 @@
     'website': "http://www.humanytek.com",
     'category': 'Stock',
     'version': '1.0.0',
-    'depends': ['stock', 'sale_order_observation'],
+    'depends': ['stock'],
     'data': [
         'view/stock_kardex_view.xml',
     ],
