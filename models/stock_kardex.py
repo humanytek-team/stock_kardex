@@ -33,6 +33,7 @@ class StockKardex(models.TransientModel):
         StockMove = self.env['stock.move']
         StockKardexDetail = self.env['stock.kardex.detail']
         qty = 0
+        qty_reserve = 0
         stock_moves = StockMove.search([
                         ('product_id.id', '=', self.product_id.id),
                         ('date', '>=', self.date_start),
@@ -55,20 +56,29 @@ class StockKardex(models.TransientModel):
                 qty -= move.product_uom_qty
             else:
                 qty += move.product_uom_qty
+                qty_reserve += move.reserved_availability
 
-        self.write({'stock_start': qty})
+        #self.write({'stock_start': qty})
+        qty_ini = qty
         StockKardexDetail.search([]).unlink()
         for stock_move in stock_moves:
+            product_incomming = 0
+            product_outgoing = 0
             if self.location_id.id == stock_move.location_id.id:
+                product_incomming = stock_move.product_uom_qty
                 qty -= stock_move.product_uom_qty
             else:
+                product_outgoing = stock_move.product_uom_qty
                 qty += stock_move.product_uom_qty
             StockKardexDetail.create({
                     'stock_move_id': stock_move.id,
                     'product_id': self.product_id.id,
                     'stock_kardex_id': self.id,
-                    'qty_product': qty})
-        self.write({'stock_end': qty})
+                    'qty_product': qty,
+                    'product_incomming': product_incomming,
+                    'product_outgoing': product_outgoing})
+        self.write({'stock_end': qty, 'qty_reserve': qty_reserve,
+                    'stock_start': qty_ini})
 
         return {
                 'type': 'ir.actions.act_window',
@@ -95,6 +105,7 @@ class StockKardex(models.TransientModel):
                                     required=True)
     stock_start = fields.Float('Starting stock', readonly=True)
     stock_end = fields.Float('Ending stock', readonly=True,)
+    qty_reserve = fields.Float('Total Reserved Product', readonly=True,)
 
     stock_kardex_detail_ids = fields.One2many('stock.kardex.detail',
                             'stock_kardex_id',
@@ -107,6 +118,8 @@ class StockKardexDetail(models.TransientModel):
     stock_kardex_id = fields.Many2one('stock.kardex', 'Kardex')
     stock_move_id = fields.Many2one('stock.move', 'Move', readonly=True)
     qty_product = fields.Float('Quantity Total', readonly=True)
+    product_incomming = fields.Float('Incoming Products', readonly=True)
+    product_outgoing = fields.Float('Outgoing Products', readonly=True)
     move_qty_product = fields.Float(related='stock_move_id.product_uom_qty',
                             string='Quantity', readonly=True, store=False)
     move_date = fields.Datetime(related='stock_move_id.date',
