@@ -56,7 +56,18 @@ class StockKardex(models.TransientModel):
                 qty -= move.product_uom_qty
             else:
                 qty += move.product_uom_qty
-                qty_reserve += move.reserved_availability
+
+        stock_moves_reserved = StockMove.search([
+                        ('product_id.id', '=', self.product_id.id),
+                        ('date', '>=', self.date_start),
+                        ('date', '<=', self.date_end),
+                        ('state', 'in', ['assigned', 'confirmed']),
+                        ('location_id', '=', self.location_id.id)],
+                            order='date')
+
+        for moves_reserved in stock_moves_reserved:
+            qty_reserve += moves_reserved.reserved_availability
+
 
         #self.write({'stock_start': qty})
         qty_ini = qty
@@ -70,6 +81,7 @@ class StockKardex(models.TransientModel):
             else:
                 product_outgoing = stock_move.product_uom_qty
                 qty += stock_move.product_uom_qty
+
             StockKardexDetail.create({
                     'stock_move_id': stock_move.id,
                     'product_id': self.product_id.id,
