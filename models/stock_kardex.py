@@ -75,7 +75,7 @@ class StockKardex(models.TransientModel):
         for stock_move in stock_moves:
             product_incomming = 0
             product_outgoing = 0
-            if self.location_id.id == self.location_dest_id.id:
+            if stock_move.location_id.id == stock_move.location_dest_id.id:
                 if self.location_id.id == stock_move.location_id.id:
                     product_outgoing = stock_move.product_uom_qty
                     qty -= stock_move.product_uom_qty
