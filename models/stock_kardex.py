@@ -75,20 +75,21 @@ class StockKardex(models.TransientModel):
         for stock_move in stock_moves:
             product_incomming = 0
             product_outgoing = 0
-            if self.location_id.id == stock_move.location_id.id:
-                product_incomming = stock_move.product_uom_qty
-                qty -= stock_move.product_uom_qty
-            else:
-                product_outgoing = stock_move.product_uom_qty
-                qty += stock_move.product_uom_qty
+            if self.location_id.id == self.location_dest_id.id:
+                if self.location_id.id == stock_move.location_id.id:
+                    product_outgoing = stock_move.product_uom_qty
+                    qty -= stock_move.product_uom_qty
+                else:
+                    product_incomming = stock_move.product_uom_qty
+                    qty += stock_move.product_uom_qty
 
-            StockKardexDetail.create({
-                    'stock_move_id': stock_move.id,
-                    'product_id': self.product_id.id,
-                    'stock_kardex_id': self.id,
-                    'qty_product': qty,
-                    'product_incomming': product_incomming,
-                    'product_outgoing': product_outgoing})
+                StockKardexDetail.create({
+                        'stock_move_id': stock_move.id,
+                        'product_id': self.product_id.id,
+                        'stock_kardex_id': self.id,
+                        'qty_product': qty,
+                        'product_incomming': product_incomming,
+                        'product_outgoing': product_outgoing})
         self.write({'stock_end': qty, 'qty_reserve': qty_reserve,
                     'stock_start': qty_ini})
 
