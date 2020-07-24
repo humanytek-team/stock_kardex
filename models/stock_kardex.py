@@ -35,22 +35,23 @@ class StockKardex(models.TransientModel):
         qty = 0
         qty_reserve = 0
         stock_moves = StockMove.search([
-                        ('product_id.id', '=', self.product_id.id),
-                        ('date', '>=', self.date_start),
-                        ('date', '<=', self.date_end),
-                        ('state', '=', 'done'),
-                        '|',
-                        ('location_id', '=', self.location_id.id),
-                        ('location_dest_id', '=', self.location_id.id)],
-                            order='date')
+            ('product_id.id', '=', self.product_id.id),
+            ('date', '>=', self.date_start),
+            ('date', '<=', self.date_end),
+            ('state', '=', 'done'),
+            '|',
+            ('location_id', '=', self.location_id.id),
+            ('location_dest_id', '=', self.location_id.id)],
+            order='date')
 
         stock_moves_ini = StockMove.search([
-                        ('product_id.id', '=', self.product_id.id),
-                        ('date', '<', self.date_start),
-                        ('state', '=', 'done'),
-                        '|',
-                        ('location_id', '=', self.location_id.id),
-                        ('location_dest_id', '=', self.location_id.id)])
+            ('product_id.id', '=', self.product_id.id),
+            ('date', '<', self.date_start),
+            ('state', '=', 'done'),
+            '|',
+            ('location_id', '=', self.location_id.id),
+            ('location_dest_id', '=', self.location_id.id)],
+            order='date')
         for move in stock_moves_ini:
             if self.location_id.id == move.location_id.id:
                 qty -= move.product_uom_qty
@@ -58,16 +59,15 @@ class StockKardex(models.TransientModel):
                 qty += move.product_uom_qty
 
         stock_moves_reserved = StockMove.search([
-                        ('product_id.id', '=', self.product_id.id),
-                        ('date', '>=', self.date_start),
-                        ('date', '<=', self.date_end),
-                        ('state', 'in', ['assigned', 'confirmed']),
-                        ('location_id', '=', self.location_id.id)],
-                            order='date')
+            ('product_id.id', '=', self.product_id.id),
+            ('date', '>=', self.date_start),
+            ('date', '<=', self.date_end),
+            ('state', 'in', ['assigned', 'confirmed']),
+            ('location_id', '=', self.location_id.id)],
+            order='date')
 
         for moves_reserved in stock_moves_reserved:
             qty_reserve += moves_reserved.reserved_availability
-
 
         #self.write({'stock_start': qty})
         qty_ini = qty
@@ -84,24 +84,24 @@ class StockKardex(models.TransientModel):
                     qty += stock_move.product_uom_qty
 
                 StockKardexDetail.create({
-                        'stock_move_id': stock_move.id,
-                        'product_id': self.product_id.id,
-                        'stock_kardex_id': self.id,
-                        'qty_product': qty,
-                        'product_incomming': product_incomming,
-                        'product_outgoing': product_outgoing})
+                    'stock_move_id': stock_move.id,
+                    'product_id': self.product_id.id,
+                    'stock_kardex_id': self.id,
+                    'qty_product': qty,
+                    'product_incomming': product_incomming,
+                    'product_outgoing': product_outgoing})
         self.write({'stock_end': qty, 'qty_reserve': qty_reserve,
                     'stock_start': qty_ini})
 
         return {
-                'type': 'ir.actions.act_window',
-                'res_model': 'stock.kardex',
-                'view_mode': 'form',
-                'view_type': 'form',
-                'res_id': self.id,
-                'views': [(False, 'form')],
-                'target': 'new',
-                }
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.kardex',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'res_id': self.id,
+            'views': [(False, 'form')],
+            'target': 'new',
+        }
 
     @api.model
     def _get_default_location_id(self):
@@ -111,18 +111,18 @@ class StockKardex(models.TransientModel):
 
     product_id = fields.Many2one('product.product', 'Product', required=True)
     location_id = fields.Many2one('stock.location', 'Location', required=True,
-                                default=_get_default_location_id)
+                                  default=_get_default_location_id)
     date_start = fields.Datetime('Start Date',
-                                    required=True)
+                                 required=True)
     date_end = fields.Datetime('End Date',
-                                    required=True)
+                               required=True)
     stock_start = fields.Float('Starting stock', readonly=True)
     stock_end = fields.Float('Ending stock', readonly=True,)
     qty_reserve = fields.Float('Total Reserved Product', readonly=True,)
 
     stock_kardex_detail_ids = fields.One2many('stock.kardex.detail',
-                            'stock_kardex_id',
-                            'Detail')
+                                              'stock_kardex_id',
+                                              'Detail')
 
 
 class StockKardexDetail(models.TransientModel):
@@ -134,14 +134,13 @@ class StockKardexDetail(models.TransientModel):
     product_incomming = fields.Float('Incoming Products', readonly=True)
     product_outgoing = fields.Float('Outgoing Products', readonly=True)
     move_qty_product = fields.Float(related='stock_move_id.product_uom_qty',
-                            string='Quantity', readonly=True, store=False)
+                                    string='Quantity', readonly=True, store=False)
     move_date = fields.Datetime(related='stock_move_id.date',
-                            string='Date', readonly=True, store=False)
+                                string='Date', readonly=True, store=False)
     location_id = fields.Many2one(related='stock_move_id.location_id',
-                            string='Source Location',
-                            readonly=True, store=False)
+                                  string='Source Location',
+                                  readonly=True, store=False)
     location_dest_id = fields.Many2one(
-                            related='stock_move_id.location_dest_id',
-                            string='Destination Location',
-                            readonly=True, store=False)
-
+        related='stock_move_id.location_dest_id',
+        string='Destination Location',
+        readonly=True, store=False)
